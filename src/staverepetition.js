@@ -5,21 +5,23 @@ import { StaveModifier } from './stavemodifier';
 import { Glyph } from './glyph';
 
 export class Repetition extends StaveModifier {
-  static get CATEGORY() { return 'repetitions'; }
+  static get CATEGORY() {
+    return 'repetitions';
+  }
   static get type() {
     return {
-      NONE: 1,         // no coda or segno
-      CODA_LEFT: 2,    // coda at beginning of stave
-      CODA_RIGHT: 3,   // coda at end of stave
-      SEGNO_LEFT: 4,   // segno at beginning of stave
-      SEGNO_RIGHT: 5,  // segno at end of stave
-      DC: 6,           // D.C. at end of stave
-      DC_AL_CODA: 7,   // D.C. al coda at end of stave
-      DC_AL_FINE: 8,   // D.C. al Fine end of stave
-      DS: 9,           // D.S. at end of stave
-      DS_AL_CODA: 10,  // D.S. al coda at end of stave
-      DS_AL_FINE: 11,  // D.S. al Fine at end of stave
-      FINE: 12,        // Fine at end of stave
+      NONE: 1, // no coda or segno
+      CODA_LEFT: 2, // coda at beginning of stave
+      CODA_RIGHT: 3, // coda at end of stave
+      SEGNO_LEFT: 4, // segno at beginning of stave
+      SEGNO_RIGHT: 5, // segno at end of stave
+      DC: 6, // D.C. at end of stave
+      DC_AL_CODA: 7, // D.C. al coda at end of stave
+      DC_AL_FINE: 8, // D.C. al Fine end of stave
+      DS: 9, // D.S. at end of stave
+      DS_AL_CODA: 10, // D.S. al coda at end of stave
+      DS_AL_FINE: 11, // D.S. al Fine at end of stave
+      FINE: 12, // Fine at end of stave
     };
   }
 
@@ -38,9 +40,17 @@ export class Repetition extends StaveModifier {
     };
   }
 
-  getCategory() { return Repetition.CATEGORY; }
-  setShiftX(x) { this.x_shift = x; return this; }
-  setShiftY(y) { this.y_shift = y; return this; }
+  getCategory() {
+    return Repetition.CATEGORY;
+  }
+  setShiftX(x) {
+    this.x_shift = x;
+    return this;
+  }
+  setShiftY(y) {
+    this.y_shift = y;
+    return this;
+  }
 
   draw(stave, x) {
     this.setRendered();
@@ -88,13 +98,13 @@ export class Repetition extends StaveModifier {
 
   drawCodaFixed(stave, x) {
     const y = stave.getYForTopText(stave.options.num_lines) + this.y_shift;
-    Glyph.renderGlyph(stave.context, this.x + x + this.x_shift, y + 25, 40, 'v4d', true);
+    Glyph.renderGlyph(stave.context, this.x + x + this.x_shift, y + 25, 40, 'coda', { category: 'coda' });
     return this;
   }
 
   drawSignoFixed(stave, x) {
     const y = stave.getYForTopText(stave.options.num_lines) + this.y_shift;
-    Glyph.renderGlyph(stave.context, this.x + x + this.x_shift, y + 25, 30, 'v8c', true);
+    Glyph.renderGlyph(stave.context, this.x + x + this.x_shift, y + 25, 30, 'segno', { category: 'segno' });
     return this;
   }
 
@@ -110,15 +120,19 @@ export class Repetition extends StaveModifier {
       // Offset Coda text to right of stave beginning
       text_x = this.x + stave.options.vertical_bar_width;
       symbol_x = text_x + ctx.measureText(text).width + 12;
+    } else if (this.symbol_type === Repetition.type.DS) {
+      const modifierWidth = stave.start_x - this.x;
+      text_x = this.x + x + this.x_shift + stave.width - 5 - modifierWidth - ctx.measureText(text).width;
+      // TODO this is weird. setting the x position should probably be refactored, parameters aren't clear here.
     } else {
       // Offset Signo text to left stave end
       symbol_x = this.x + x + stave.width - 5 + this.x_shift;
-      text_x = symbol_x - + ctx.measureText(text).width - 12;
+      text_x = symbol_x - +ctx.measureText(text).width - 12;
     }
 
     const y = stave.getYForTopText(stave.options.num_lines) + this.y_shift;
     if (draw_coda) {
-      Glyph.renderGlyph(ctx, symbol_x, y, 40, 'v4d', true);
+      Glyph.renderGlyph(ctx, symbol_x, y, 40, 'coda', { category: 'coda' });
     }
 
     ctx.fillText(text, text_x, y + 5);

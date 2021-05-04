@@ -17,11 +17,14 @@ import { StringNumber } from './stringnumber';
 import { Articulation } from './articulation';
 import { Ornament } from './ornament';
 import { Annotation } from './annotation';
+import { ChordSymbol } from './chordsymbol';
 import { Bend } from './bend';
 import { Vibrato } from './vibrato';
 
 // To enable logging for this class. Set `Vex.Flow.ModifierContext.DEBUG` to `true`.
-function L(...args) { if (ModifierContext.DEBUG) Vex.L('Vex.Flow.ModifierContext', args); }
+function L(...args) {
+  if (ModifierContext.DEBUG) Vex.L('Vex.Flow.ModifierContext', args);
+}
 
 export class ModifierContext {
   constructor() {
@@ -54,6 +57,7 @@ export class ModifierContext {
       Articulation,
       Ornament,
       Annotation,
+      ChordSymbol,
       Bend,
       Vibrato,
     ];
@@ -71,11 +75,21 @@ export class ModifierContext {
     return this;
   }
 
-  getModifiers(type) { return this.modifiers[type]; }
-  getWidth() { return this.width; }
-  getExtraLeftPx() { return this.state.left_shift; }
-  getExtraRightPx() { return this.state.right_shift; }
-  getState() { return this.state; }
+  getModifiers(type) {
+    return this.modifiers[type];
+  }
+  getWidth() {
+    return this.width;
+  }
+  getLeftShift() {
+    return this.state.left_shift;
+  }
+  getRightShift() {
+    return this.state.right_shift;
+  }
+  getState() {
+    return this.state;
+  }
 
   getMetrics() {
     if (!this.formatted) {
@@ -85,8 +99,6 @@ export class ModifierContext {
     return {
       width: this.state.left_shift + this.state.right_shift + this.spacing,
       spacing: this.spacing,
-      extra_left_px: this.state.left_shift,
-      extra_right_px: this.state.right_shift,
     };
   }
 

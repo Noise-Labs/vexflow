@@ -7,7 +7,9 @@ import { Vex } from './vex';
 import { Modifier } from './modifier';
 
 export class Dot extends Modifier {
-  static get CATEGORY() { return 'dots'; }
+  static get CATEGORY() {
+    return 'dots';
+  }
 
   // Arrange dots inside a ModifierContext.
   static format(dots, state) {
@@ -17,22 +19,27 @@ export class Dot extends Modifier {
     if (!dots || dots.length === 0) return false;
 
     const dot_list = [];
+    const max_shift_map = {};
     for (let i = 0; i < dots.length; ++i) {
       const dot = dots[i];
       const note = dot.getNote();
 
       let props;
       let shift;
+
       // Only StaveNote has .getKeyProps()
       if (typeof note.getKeyProps === 'function') {
         props = note.getKeyProps()[dot.getIndex()];
-        shift = (props.displaced ? note.getExtraRightPx() : 0);
-      } else { // Else it's a TabNote
+        shift = note.getRightDisplacedHeadPx();
+      } else {
+        // Else it's a TabNote
         props = { line: 0.5 }; // Shim key props for dot placement
         shift = 0;
       }
 
-      dot_list.push({ line: props.line, shift, note, dot });
+      const note_id = note.getAttribute('id');
+      dot_list.push({ line: props.line, note, note_id, dot });
+      max_shift_map[note_id] = Math.max(max_shift_map[note_id] || shift, shift);
     }
 
     // Sort dots by line number.
@@ -46,11 +53,11 @@ export class Dot extends Modifier {
     let half_shiftY = 0;
 
     for (let i = 0; i < dot_list.length; ++i) {
-      const { dot, note, shift, line } = dot_list[i];
+      const { dot, note, note_id, line } = dot_list[i];
 
       // Reset the position of the dot every line.
       if (line !== last_line || note !== last_note) {
-        dot_shift = shift;
+        dot_shift = max_shift_map[note_id];
       }
 
       if (!note.isRest() && line !== last_line) {
@@ -60,8 +67,7 @@ export class Dot extends Modifier {
         } else {
           // note is on a line, so shift dot to space above the line
           half_shiftY = 0.5;
-          if (last_note != null &&
-              !last_note.isRest() && last_line - line === 0.5) {
+          if (last_note != null && !last_note.isRest() && last_line - line === 0.5) {
             // previous note on a space, so shift dot to space below the line
             half_shiftY = -0.5;
           } else if (line + half_shiftY === prev_dotted_space) {
@@ -81,7 +87,7 @@ export class Dot extends Modifier {
 
       dot.setXShift(dot_shift);
       dot_shift += dot.getWidth() + dot_spacing; // spacing
-      x_width = (dot_shift > x_width) ? dot_shift : x_width;
+      x_width = dot_shift > x_width ? dot_shift : x_width;
       last_line = line;
       last_note = note;
     }
@@ -98,8 +104,6 @@ export class Dot extends Modifier {
     super();
     this.setAttribute('type', 'Dot');
 
-    this.note = null;
-    this.index = null;
     this.position = Modifier.Position.RIGHT;
 
     this.radius = 2;
@@ -107,18 +111,24 @@ export class Dot extends Modifier {
     this.dot_shiftY = 0;
   }
 
-  getCategory() { return Dot.CATEGORY; }
+  getCategory() {
+    return Dot.CATEGORY;
+  }
 
   setNote(note) {
     this.note = note;
 
     if (this.note.getCategory() === 'gracenotes') {
-      this.radius *= 0.50;
+      this.radius *= 0.5;
       this.setWidth(3);
     }
+    return this;
   }
 
-  setDotShiftY(y) { this.dot_shiftY = y; return this; }
+  setDotShiftY(y) {
+    this.dot_shiftY = y;
+    return this;
+  }
 
   draw() {
     this.checkContext();
@@ -130,15 +140,15 @@ export class Dot extends Modifier {
 
     const lineSpace = this.note.stave.options.spacing_between_lines_px;
 
-    const start = this.note.getModifierStartXY(this.position, this.index);
+    const start = this.note.getModifierStartXY(this.position, this.index, { forceFlagRight: true });
 
     // Set the starting y coordinate to the base of the stem for TabNotes
     if (this.note.getCategory() === 'tabnotes') {
       start.y = this.note.getStemExtents().baseY;
     }
 
-    const x = (start.x + this.x_shift) + this.width - this.radius;
-    const y = start.y + this.y_shift + (this.dot_shiftY * lineSpace);
+    const x = start.x + this.x_shift + this.width - this.radius;
+    const y = start.y + this.y_shift + this.dot_shiftY * lineSpace;
     const ctx = this.context;
 
     ctx.beginPath();

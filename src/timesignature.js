@@ -10,7 +10,7 @@ import { Glyph } from './glyph';
 import { StaveModifier } from './stavemodifier';
 
 const assertIsValidFraction = (timeSpec) => {
-  const numbers = timeSpec.split('/').filter(number => number !== '');
+  const numbers = timeSpec.split('/').filter((number) => number !== '');
 
   if (numbers.length !== 2) {
     throw new Vex.RERR(
@@ -19,51 +19,55 @@ const assertIsValidFraction = (timeSpec) => {
     );
   }
 
-  numbers.forEach(number => {
+  numbers.forEach((number) => {
     if (isNaN(Number(number))) {
-      throw new Vex.RERR(
-        'BadTimeSignature', `Invalid time spec: ${timeSpec}. Must contain two valid numbers.`
-      );
+      throw new Vex.RERR('BadTimeSignature', `Invalid time spec: ${timeSpec}. Must contain two valid numbers.`);
     }
   });
 };
 
 export class TimeSignature extends StaveModifier {
-  static get CATEGORY() { return 'timesignatures'; }
+  static get CATEGORY() {
+    return 'timesignatures';
+  }
 
   static get glyphs() {
     return {
-      'C': {
-        code: 'v41',
+      C: {
+        code: 'timeSigCommon',
         point: 40,
         line: 2,
       },
       'C|': {
-        code: 'vb6',
+        code: 'timeSigCutCommon',
         point: 40,
         line: 2,
       },
     };
   }
 
-  constructor(timeSpec = null, customPadding = 15) {
+  constructor(timeSpec = null, customPadding = 15, validate_args = true) {
     super();
     this.setAttribute('type', 'TimeSignature');
+    this.validate_args = validate_args;
 
     if (timeSpec === null) return;
 
     const padding = customPadding;
 
-    this.point = 40;
-    this.topLine = 2;
-    this.bottomLine = 4;
+    this.point = this.musicFont.lookupMetric('digits.point');
+    const fontLineShift = this.musicFont.lookupMetric('digits.shiftLine', 0);
+    this.topLine = 2 + fontLineShift;
+    this.bottomLine = 4 + fontLineShift;
     this.setPosition(StaveModifier.Position.BEGIN);
     this.setTimeSig(timeSpec);
     this.setWidth(this.timeSig.glyph.getMetrics().width);
     this.setPadding(padding);
   }
 
-  getCategory() { return TimeSignature.CATEGORY; }
+  getCategory() {
+    return TimeSignature.CATEGORY;
+  }
 
   parseTimeSpec(timeSpec) {
     if (timeSpec === 'C' || timeSpec === 'C|') {
@@ -75,11 +79,11 @@ export class TimeSignature extends StaveModifier {
       };
     }
 
-    assertIsValidFraction(timeSpec);
+    if (this.validate_args) {
+      assertIsValidFraction(timeSpec);
+    }
 
-    const [topDigits, botDigits] = timeSpec
-      .split('/')
-      .map(number => number.split(''));
+    const [topDigits, botDigits] = timeSpec.split('/').map((number) => number.split(''));
 
     return {
       num: true,
@@ -88,14 +92,14 @@ export class TimeSignature extends StaveModifier {
   }
 
   makeTimeSignatureGlyph(topDigits, botDigits) {
-    const glyph = new Glyph('v0', this.point);
+    const glyph = new Glyph('timeSig0', this.point);
     glyph.topGlyphs = [];
     glyph.botGlyphs = [];
 
     let topWidth = 0;
     for (let i = 0; i < topDigits.length; ++i) {
       const num = topDigits[i];
-      const topGlyph = new Glyph('v' + num, this.point);
+      const topGlyph = new Glyph('timeSig' + num, this.point);
 
       glyph.topGlyphs.push(topGlyph);
       topWidth += topGlyph.getMetrics().width;
@@ -104,7 +108,7 @@ export class TimeSignature extends StaveModifier {
     let botWidth = 0;
     for (let i = 0; i < botDigits.length; ++i) {
       const num = botDigits[i];
-      const botGlyph = new Glyph('v' + num, this.point);
+      const botGlyph = new Glyph('timeSig' + num, this.point);
 
       glyph.botGlyphs.push(botGlyph);
       botWidth += botGlyph.getMetrics().width;
@@ -132,7 +136,7 @@ export class TimeSignature extends StaveModifier {
           glyph.metrics.outline,
           glyph.scale,
           start_x + glyph.x_shift,
-          this.stave.getYForLine(that.topLine) + 1
+          this.stave.getYForLine(that.topLine)
         );
         start_x += glyph.getMetrics().width;
       }
@@ -146,7 +150,7 @@ export class TimeSignature extends StaveModifier {
           glyph.metrics.outline,
           glyph.scale,
           start_x + glyph.x_shift,
-          this.stave.getYForLine(that.bottomLine) + 1
+          this.stave.getYForLine(that.bottomLine)
         );
         start_x += glyph.getMetrics().width;
       }

@@ -6,7 +6,9 @@ import { Flow } from './tables';
 import { StaveModifier } from './stavemodifier';
 
 export class Barline extends StaveModifier {
-  static get CATEGORY() { return 'barlines'; }
+  static get CATEGORY() {
+    return 'barlines';
+  }
   static get type() {
     return {
       SINGLE: 1,
@@ -58,18 +60,64 @@ export class Barline extends StaveModifier {
     this.paddings[TYPE.REPEAT_BOTH] = 15;
     this.paddings[TYPE.NONE] = 0;
 
+    this.layoutMetricsMap = {};
+    this.layoutMetricsMap[TYPE.SINGLE] = {
+      xMin: 0,
+      xMax: 1,
+      paddingLeft: 5,
+      paddingRight: 5,
+    };
+    this.layoutMetricsMap[TYPE.DOUBLE] = {
+      xMin: -3,
+      xMax: 1,
+      paddingLeft: 5,
+      paddingRight: 5,
+    };
+    this.layoutMetricsMap[TYPE.END] = {
+      xMin: -5,
+      xMax: 1,
+      paddingLeft: 5,
+      paddingRight: 5,
+    };
+    this.layoutMetricsMap[TYPE.REPEAT_END] = {
+      xMin: -10,
+      xMax: 1,
+      paddingLeft: 5,
+      paddingRight: 5,
+    };
+    this.layoutMetricsMap[TYPE.REPEAT_BEGIN] = {
+      xMin: -2,
+      xMax: 10,
+      paddingLeft: 5,
+      paddingRight: 5,
+    };
+    this.layoutMetricsMap[TYPE.REPEAT_BOTH] = {
+      xMin: -10,
+      xMax: 10,
+      paddingLeft: 5,
+      paddingRight: 5,
+    };
+    this.layoutMetricsMap[TYPE.NONE] = {
+      xMin: 0,
+      xMax: 0,
+      paddingLeft: 5,
+      paddingRight: 5,
+    };
     this.setPosition(StaveModifier.Position.BEGIN);
     this.setType(type);
   }
-  getCategory() { return Barline.CATEGORY; }
-  getType() { return this.type; }
+  getCategory() {
+    return Barline.CATEGORY;
+  }
+  getType() {
+    return this.type;
+  }
   setType(type) {
-    this.type = typeof(type) === 'string'
-      ? Barline.typeString[type]
-      : type;
+    this.type = typeof type === 'string' ? Barline.typeString[type] : type;
 
     this.setWidth(this.widths[this.type]);
     this.setPadding(this.paddings[this.type]);
+    this.setLayoutMetrics(this.layoutMetricsMap[this.type]);
     return this;
   }
 
@@ -151,12 +199,12 @@ export class Barline extends StaveModifier {
       x_shift -= 4;
     }
 
-    const dot_x = (x + x_shift) + (dot_radius / 2);
+    const dot_x = x + x_shift + dot_radius / 2;
 
     // calculate the y offset based on number of stave lines
     let y_offset = (stave.getNumLines() - 1) * stave.getSpacingBetweenLines();
-    y_offset = (y_offset / 2) - (stave.getSpacingBetweenLines() / 2);
-    let dot_y = topY + y_offset + (dot_radius / 2);
+    y_offset = y_offset / 2 - stave.getSpacingBetweenLines() / 2;
+    let dot_y = topY + y_offset + dot_radius / 2;
 
     // draw the top repeat dot
     stave.context.beginPath();

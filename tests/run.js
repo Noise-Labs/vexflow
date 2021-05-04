@@ -1,4 +1,8 @@
-VF.Test.run = function() {
+import { FractionTests } from './fraction_tests';
+import { MusicTests } from './music_tests';
+import { TuningTests } from './tuning_tests';
+
+VF.Test.run = function () {
   VF.Test.Accidental.Start();
   VF.Test.StaveNote.Start();
   VF.Test.Voice.Start();
@@ -9,6 +13,7 @@ VF.Test.run = function() {
   VF.Test.Dot.Start();
   VF.Test.Bend.Start();
   VF.Test.Formatter.Start();
+  FractionTests.Start();
   VF.Test.Clef.Start();
   VF.Test.KeySignature.Start();
   VF.Test.TimeSignature.Start();
@@ -25,11 +30,13 @@ VF.Test.run = function() {
   VF.Test.Vibrato.Start();
   VF.Test.VibratoBracket.Start();
   VF.Test.Annotation.Start();
-  VF.Test.Tuning.Start();
-  VF.Test.Music.Start();
+  VF.Test.ChordSymbol.Start();
+  TuningTests.Start();
+  MusicTests.Start();
   VF.Test.KeyManager.Start();
   VF.Test.Articulation.Start();
   VF.Test.StaveConnector.Start();
+  VF.Test.MultiMeasureRest.Start();
   VF.Test.Percussion.Start();
   VF.Test.NoteSubGroup.Start();
   VF.Test.ClefKeySignature.Start();
@@ -49,11 +56,11 @@ VF.Test.run = function() {
   VF.Test.TextBracket.Start();
   VF.Test.StaveModifier.Start();
   VF.Test.GhostNote.Start();
+  VF.Test.Style.Start();
   VF.Test.Factory.Start();
   VF.Test.Parser.Start();
   VF.Test.EasyScore.Start();
   VF.Test.Registry.Start();
   VF.Test.BachDemo.Start();
+  VF.Test.GlyphNote.Start();
 };
-
-module.exports = VF.Test;

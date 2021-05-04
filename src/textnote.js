@@ -6,7 +6,6 @@
 // Examples of this would be such as dynamics, lyrics, chord changes, etc.
 
 import { Vex } from './vex';
-import { Flow } from './tables';
 import { Note } from './note';
 import { Glyph } from './glyph';
 
@@ -22,177 +21,96 @@ export class TextNote extends Note {
   // Glyph data
   static get GLYPHS() {
     return {
-      'segno': {
-        code: 'v8c',
-        point: 40,
-        x_shift: 0,
-        y_shift: -10,
-        // width: 10 // optional
+      segno: {
+        code: 'segno',
       },
-      'tr': {
-        code: 'v1f',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
-        // width: 10 // optional
+      tr: {
+        code: 'ornamentTrill',
       },
-      'mordent_upper': {
-        code: 'v1e',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
-        // width: 10 // optional
+      mordent: {
+        code: 'ornamentMordent',
       },
-      'mordent_lower': {
-        code: 'v45',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
-        // width: 10 // optional
+      mordent_upper: {
+        code: 'ornamentShortTrill',
       },
-      'f': {
-        code: 'vba',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
-        // width: 10 // optional
+      mordent_lower: {
+        code: 'ornamentMordent',
       },
-      'p': {
-        code: 'vbf',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
-        // width: 10 // optional
+      f: {
+        code: 'dynamicForte',
       },
-      'm': {
-        code: 'v62',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
-        // width: 10 // optional
+      p: {
+        code: 'dynamicPiano',
       },
-      's': {
-        code: 'v4a',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
-        // width: 10 // optional
+      m: {
+        code: 'dynamicMezzo',
       },
-      'z': {
-        code: 'v80',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
-        // width: 10 // optional
+      s: {
+        code: 'dynamicSforzando',
       },
-      'coda': {
-        code: 'v4d',
-        point: 40,
-        x_shift: 0,
-        y_shift: -8,
-        // width: 10 // optional
+      z: {
+        code: 'dynamicZ',
       },
-      'pedal_open': {
-        code: 'v36',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
+      coda: {
+        code: 'coda',
       },
-      'pedal_close': {
-        code: 'v5d',
-        point: 40,
-        x_shift: 0,
-        y_shift: 3,
+      pedal_open: {
+        code: 'keyboardPedalPed',
       },
-      'caesura_straight': {
-        code: 'v34',
-        point: 40,
-        x_shift: 0,
-        y_shift: 2,
+      pedal_close: {
+        code: 'keyboardPedalUp',
       },
-      'caesura_curved': {
-        code: 'v4b',
-        point: 40,
-        x_shift: 0,
-        y_shift: 2,
+      caesura_straight: {
+        code: 'caesura',
       },
-      'breath': {
-        code: 'v6c',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
+      caesura_curved: {
+        code: 'caesuraCurved',
       },
-      'tick': {
-        code: 'v6f',
-        point: 50,
-        x_shift: 0,
-        y_shift: 0,
+      breath: {
+        code: 'breathMarkComma',
       },
-      'turn': {
-        code: 'v72',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
+      tick: {
+        code: 'breathMarkTick',
       },
-      'turn_inverted': {
-        code: 'v33',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
+      turn: {
+        code: 'ornamentTurn',
       },
-
-      // DEPRECATED - please use "mordent_upper" or "mordent_lower"
-      'mordent': {
-        code: 'v1e',
-        point: 40,
-        x_shift: 0,
-        y_shift: 0,
-        // width: 10 // optional
+      turn_inverted: {
+        code: 'ornamentTurnSlash',
       },
     };
   }
 
-  constructor(text_struct) {
-    super(text_struct);
+  constructor(options) {
+    super(options);
     this.setAttribute('type', 'TextNote');
 
     // Note properties
-    this.text = text_struct.text;
-    this.superscript = text_struct.superscript;
-    this.subscript = text_struct.subscript;
-    this.glyph_type = text_struct.glyph;
+    this.text = options.text;
+    this.superscript = options.superscript;
+    this.subscript = options.subscript;
     this.glyph = null;
     this.font = {
       family: 'Arial',
       size: 12,
       weight: '',
+      ...options.font,
     };
-
-    // Set font
-    if (text_struct.font) this.font = text_struct.font;
 
     // Determine and set initial note width. Note that the text width is
     // an approximation and isn't very accurate. The only way to accurately
     // measure the length of text is with `canvasmeasureText()`
-    if (this.glyph_type) {
-      const struct = TextNote.GLYPHS[this.glyph_type];
-      if (!struct) throw new Vex.RERR('Invalid glyph type: ' + this.glyph_type);
+    if (options.glyph) {
+      const struct = TextNote.GLYPHS[options.glyph];
+      if (!struct) throw new Vex.RERR('Invalid glyph type: ' + options.glyph);
 
-      this.glyph = new Glyph(struct.code, struct.point, { cache: false });
-
-      if (struct.width) {
-        this.setWidth(struct.width);
-      } else {
-        this.setWidth(this.glyph.getMetrics().width);
-      }
-
-      this.glyph_struct = struct;
-    } else {
-      this.setWidth(Flow.textWidth(this.text));
+      this.glyph = new Glyph(struct.code, 40, { category: 'textNote' });
+      this.setWidth(this.glyph.getMetrics().width);
     }
-    this.line = text_struct.line || 0;
-    this.smooth = text_struct.smooth || false;
-    this.ignore_ticks = text_struct.ignore_ticks || false;
+
+    this.line = options.line || 0;
+    this.smooth = options.smooth || false;
+    this.ignore_ticks = options.ignore_ticks || false;
     this.justification = TextNote.Justification.LEFT;
   }
 
@@ -220,16 +138,19 @@ export class TextNote extends Note {
       if (this.glyph) {
         // Width already set.
       } else {
+        this.context.setFont(this.font.family, this.font.size, this.font.weight);
         this.setWidth(this.context.measureText(this.text).width);
       }
     }
 
     if (this.justification === TextNote.Justification.CENTER) {
-      this.extraLeftPx = this.width / 2;
+      this.leftDisplacedHeadPx = this.width / 2;
     } else if (this.justification === TextNote.Justification.RIGHT) {
-      this.extraLeftPx = this.width;
+      this.leftDisplacedHeadPx = this.width;
     }
 
+    // We reposition to the center of the note head
+    this.rightDisplacedHeadPx = this.tickContext.getMetrics().glyphPx / 2;
     this.setPreFormatted(true);
   }
 
@@ -243,42 +164,41 @@ export class TextNote extends Note {
 
     this.setRendered();
     const ctx = this.context;
-    let x = this.getAbsoluteX();
+
+    // Reposition to center of note head
+    let x = this.getAbsoluteX() + this.tickContext.getMetrics().glyphPx / 2;
+
+    // Align based on tick-context width.
+    const width = this.getWidth();
+
     if (this.justification === TextNote.Justification.CENTER) {
-      x -= this.getWidth() / 2;
+      x -= width / 2;
     } else if (this.justification === TextNote.Justification.RIGHT) {
-      x -= this.getWidth();
+      x -= width;
     }
 
     let y;
     if (this.glyph) {
       y = this.stave.getYForLine(this.line + -3);
-      this.glyph.render(
-        this.context,
-        x + this.glyph_struct.x_shift,
-        y + this.glyph_struct.y_shift
-      );
+      this.glyph.render(this.context, x, y);
     } else {
       y = this.stave.getYForLine(this.line + -3);
       this.applyStyle(ctx);
       ctx.setFont(this.font.family, this.font.size, this.font.weight);
       ctx.fillText(this.text, x, y);
 
-      // Width of the letter M gives us the approximate height of the text
-      const height = ctx.measureText('M').width;
-      // Get accurate width of text
-      const width = ctx.measureText(this.text).width;
+      const height = ctx.measureText(this.text).height;
 
       // Write superscript
       if (this.superscript) {
         ctx.setFont(this.font.family, this.font.size / 1.3, this.font.weight);
-        ctx.fillText(this.superscript, x + width + 2, y - (height / 2.2));
+        ctx.fillText(this.superscript, x + width + 2, y - height / 2.2);
       }
 
       // Write subscript
       if (this.subscript) {
         ctx.setFont(this.font.family, this.font.size / 1.3, this.font.weight);
-        ctx.fillText(this.subscript, x + width + 2, y + (height / 2.2) - 1);
+        ctx.fillText(this.subscript, x + width + 2, y + height / 2.2 - 1);
       }
 
       this.restoreStyle(ctx);
